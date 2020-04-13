@@ -7,8 +7,42 @@
 - macOS or Linux or Windows
 
 ## 依赖包
+```
+<dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zstack</groupId>
+            <artifactId>sdk</artifactId>
+            <version>3.7.4</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+    </dependencies>
+```
 
-[![redis](https://img.shields.io/pypi/v/redis.svg?label=redis)](https://pypi.org/project/redis/)
 
 ## API来源
 
@@ -16,7 +50,7 @@ https://www.zstack.io/help/dev_manual/dev_guide/11.3.html#c11_3_7
 
 ## 配置文件
 
-```python
+```
 #ZStack端口地址
 zstackAddress = "172.18.***.**"
 #用户名
