@@ -38,7 +38,7 @@ public class ZStackUtil {
     private static final String  zstackAccountName = "admin";
     private static final String zstackAccountPassword = "password";
     private static final String zstackContextPath = "zstack";
-    private static final String zstackAddress = "172.18.***.**";
+    private static final String zstackAddress = "172.18.210.30";
 
     static {
         ZSClient.configure(

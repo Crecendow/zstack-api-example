@@ -5,6 +5,7 @@ import com.txy.zstackApiExample.entity.WorkOrderRequest;
 import com.txy.zstackApiExample.util.ZStackUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.zstack.sdk.iam2.entity.IAM2ProjectInventory;
 import org.zstack.sdk.iam2.entity.IAM2VirtualIDInventory;
@@ -16,32 +17,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- * Class Name: CreateOrderController
- * FQDN：com.txy.zstackApiExample.controller.CreateOrderController
- * Author: 阿辉
- * Date: 2020/4/13 8:45
- * Description: 创建ZStack工单
- *
- */
 @Controller
 @RequestMapping("ZStack")
 public class CreateOrderController {
 
+    /***
+     * 创建云主机
+     * @param name     云主机的名称
+     * @param instanceOfferingUuid   计算规格id
+     * @param imageUuid   镜像id
+     * @param l3NetworkUuids  可用网络id
+     * @return  云主机id
+     */
     @RequestMapping(value = "/create")
     @ResponseBody
-    public String createZStack(HttpServletRequest request){
+    public String createCloudMachine(@RequestParam("name")String name,@RequestParam("instanceOfferingUuid")String instanceOfferingUuid,@RequestParam("imageUuid")String imageUuid,@RequestParam(
+            "l3NetworkUuids")String l3NetworkUuids){
         String createRes = null;
-        String name = request.getParameter("name");// 需求单号 对应TWP需求表的strSn
-        String instanceOfferingUuid = request.getParameter("instanceOfferingUuid");// 需求单号 对应TWP需求表的strSn
-        String imageUuid = request.getParameter("imageUuid");// 需求单号 对应TWP需求表的strSn
-        String l3NetworkUuids = request.getParameter("l3NetworkUuids");// 需求单号 对应TWP需求表的strSn
-
-        System.out.println(name);
-        System.out.println(instanceOfferingUuid);
-        System.out.println(imageUuid);
-        System.out.println(l3NetworkUuids);
         try {
             String accountSessionId  = ZStackUtil.logInByAccountNameAndPassword();
             createRes = ZStackUtil.CreateMachine(accountSessionId,name,instanceOfferingUuid,imageUuid,l3NetworkUuids);
@@ -51,16 +43,21 @@ public class CreateOrderController {
         return createRes;
     }
 
-
+    /***
+     * 创建工单
+     * @param name  工单的名字和云主机的名字
+     * @param instanceOfferingUuid     计算规格id
+     * @param imageUuid     镜像id
+     * @param l3NetworkUuids   可选用的网络的id
+     * @param applicant     创建者
+     * @return 工单id
+     * @throws Exception
+     */
     @ResponseBody
     @RequestMapping("/createWorkOrder")
-    public String createWorkOrder (HttpServletRequest request)  throws  Exception {
+    public String createWorkOrder (@RequestParam("name")String name,@RequestParam("instanceOfferingUuid")String instanceOfferingUuid,@RequestParam("imageUuid")String imageUuid,
+                                   @RequestParam("l3NetworkUuids")String l3NetworkUuids,@RequestParam("applicant")String applicant)  throws  Exception {
         String createOrderRes = null;
-        String name =  request.getParameter("name" );      				//云主机名称
-        String sqr = request.getParameter("sqr");		 				 //申请人的名称
-        String instanceOfferingUuid = request.getParameter("instanceOfferingUuid");
-        String imageUuid = request.getParameter("imageUuid");
-        String l3NetworkUuids = request.getParameter("l3NetworkUuids");
         String password = "password";
         Map<String, String> accountSystemContext = new HashMap<String, String>();
         String projectUuid = null;
@@ -68,12 +65,12 @@ public class CreateOrderController {
         List<String> roleUuidList = new ArrayList<>();
         String zstackAccountSessionId = ZStackUtil.logInByAccountNameAndPassword();
         //平台管理中添加用戶
-        Boolean userWheatherExist = ZStackUtil.checkZstackUserForLoginExist( sqr, zstackAccountSessionId );
+        Boolean userWheatherExist = ZStackUtil.checkZstackUserForLoginExist( applicant, zstackAccountSessionId );
         if (false == userWheatherExist) {
-            ZStackUtil.createUserForLoginZstack( sqr, password, zstackAccountSessionId );
+            ZStackUtil.createUserForLoginZstack( applicant, password, zstackAccountSessionId );
         }
         //高級功能中添加用戶以及賦予項目，以及項目權限
-        Boolean IAM2UserWheatherExist = ZStackUtil.checkZstackIAM2UserExist( sqr, zstackAccountSessionId );
+        Boolean IAM2UserWheatherExist = ZStackUtil.checkZstackIAM2UserExist( applicant, zstackAccountSessionId );
         //假如不存在就赋予项目以及项目管理员角色
         if (false == IAM2UserWheatherExist) {
             List<IAM2ProjectInventory> projectList = ZStackUtil.getProjectList( zstackAccountSessionId );
@@ -81,7 +78,7 @@ public class CreateOrderController {
             for (IAM2ProjectInventory project : projectList) {
                 if ("云主机申请".equals( project.getName() )) {
                     projectUuid = project.getUuid();
-                    IAM2VirtualIDInventory zstackIAM2User = ZStackUtil.createZstackIAM2User( sqr, password, zstackAccountSessionId );
+                    IAM2VirtualIDInventory zstackIAM2User = ZStackUtil.createZstackIAM2User( applicant, password, zstackAccountSessionId );
                     virtualIDUuid = zstackIAM2User.getUuid();
                     virtualIDUuidList = new ArrayList<>();
                     virtualIDUuidList.add( virtualIDUuid );
@@ -103,7 +100,7 @@ public class CreateOrderController {
             for (IAM2ProjectInventory project : projectList) {
                 if ("云主机申请".equals( project.getName() )) {
                     projectUuid = project.getUuid();
-                    String IAM2UserSessionId = ZStackUtil.getZstackIAM2UserSessionId( sqr, zstackAccountSessionId );
+                    String IAM2UserSessionId = ZStackUtil.getZstackIAM2UserSessionId( applicant, zstackAccountSessionId );
                     virtualIDUuid = IAM2UserSessionId;
                     virtualIDUuidList = new ArrayList<>();
                     virtualIDUuidList.add( virtualIDUuid );
@@ -121,7 +118,7 @@ public class CreateOrderController {
 
         //管理员登出，刚刚注册的用户登录进去
         ZStackUtil.logOut( zstackAccountSessionId );
-        String commonUserSessionId = ZStackUtil.logInByUsernameAndPassword(sqr,password);
+        String commonUserSessionId = ZStackUtil.logInByUsernameAndPassword(applicant,password);
 
         List<WorkOrderRequest> workOrderRequests = new ArrayList<>(  );
         WorkOrderApiBody workOrderApiBody = new WorkOrderApiBody();
